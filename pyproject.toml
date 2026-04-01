@@ -1,0 +1,23 @@
+[project]
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "email-validator>=2.3.0",
+    "fastapi>=0.135.2",
+    "httpx>=0.28.1",
+    "passlib[bcrypt]>=1.7.4",
+    "phonenumbers>=9.0.26",
+    "psycopg2-binary>=2.9.11",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "python-dotenv>=1.2.2",
+    "python-jose[cryptography]>=3.5.0",
+    "python-multipart>=0.0.22",
+    "sqlalchemy>=2.0.48",
+    "stripe>=15.0.0",
+    "twilio>=9.10.4",
+    "uvicorn[standard]>=0.42.0",
+    "websockets>=16.0",
+]

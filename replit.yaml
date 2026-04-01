@@ -1,0 +1,5 @@
+run: bash -c "npm install && expo start --web"
+entrypoint: expo
+hidden:
+  - .expo
+  - node_modules
