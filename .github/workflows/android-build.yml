@@ -21,10 +21,10 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '18.x'
           cache: 'npm'
           cache-dependency-path: './frontend/package-lock.json'
 
@@ -34,86 +34,48 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 33
-          build-tools: 33.0.0
-
-      - name: Clean npm cache
-        working-directory: ./frontend
-        run: npm cache clean --force
-
       - name: Install npm dependencies
         working-directory: ./frontend
-        run: |
-          npm install --legacy-peer-deps
-          npm ls expo-font || npm install expo-font@~11.4.0 --legacy-peer-deps
-
-      - name: Fix Expo dependencies
-        working-directory: ./frontend
-        run: npx expo install --fix --npm
-
-      - name: Verify critical packages
-        working-directory: ./frontend
-        run: |
-          npm ls react-native || echo "React Native check complete"
-          npm ls expo || echo "Expo check complete"
-          npm ls expo-font || echo "Expo Font check complete"
+        run: npm install --legacy-peer-deps
 
       - name: Create environment file
         working-directory: ./frontend
         run: |
-          cat > .env << EOF
+          cat > .env << 'EOF'
           EXPO_PUBLIC_API_URL=http://abualzahracom.online:8000/api
           EXPO_PUBLIC_WEBSOCKET_URL=wss://abualzahracom.online:8000/ws
-          EXPO_PUBLIC_TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
-          EXPO_PUBLIC_TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
-          EXPO_PUBLIC_TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}
-          EXPO_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
-          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          EXPO_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
-          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
-          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          EXPO_PUBLIC_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
-          EXPO_PUBLIC_FIREBASE_DATABASE_URL=${{ secrets.FIREBASE_DATABASE_URL }}
           EOF
-          cat .env
-
-      - name: Verify settings.gradle
-        working-directory: ./frontend
-        run: |
-          echo "=== Checking settings.gradle ==="
-          cat android/settings.gradle
-          echo "=== Checking app.json ==="
-          grep -E '"name"|"slug"|"package"' app.json | head -5
 
       - name: Make gradlew executable
         run: chmod +x ./frontend/android/gradlew
 
-      - name: Clean gradle build
-        working-directory: ./frontend/android
-        run: ./gradlew clean --stacktrace
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('frontend/android/**/*.gradle*', 'frontend/android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      - name: Build Android APK - Release
+      - name: Build Android APK (Debug)
         working-directory: ./frontend/android
-        env:
-          ORG_GRADLE_PROJECT_ANDROID_GRADLE_PLUGIN_VERSION: "7.4.2"
         run: |
-          ./gradlew assembleRelease \
+          ./gradlew assembleDebug \
             --stacktrace \
             --no-daemon \
-            -Dorg.gradle.jvmargs=-Xmx2048m
+            -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m"
 
       - name: Verify APK was created
         run: |
-          APK_PATH="frontend/android/app/build/outputs/apk/release/app-release.apk"
+          APK_PATH="frontend/android/app/build/outputs/apk/debug/app-debug.apk"
           if [ -f "$APK_PATH" ]; then
-            echo "✅ APK successfully created!"
+            echo "APK successfully created!"
             ls -lh "$APK_PATH"
           else
-            echo "❌ APK not found at expected location"
-            find frontend/android -name "*.apk" -type f
+            echo "APK not found. Searching..."
+            find frontend/android -name "*.apk" -type f 2>/dev/null || echo "No APK found anywhere"
             exit 1
           fi
 
@@ -121,42 +83,48 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: android-apk
-          path: frontend/android/app/build/outputs/apk/release/app-release.apk
+          name: AbuAlzahra-VoIP-v${{ github.run_number }}
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
       - name: Upload build logs on failure
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: gradle-build-logs
-          path: frontend/android/app/build/reports/
+          name: build-logs-${{ github.run_number }}
+          path: |
+            frontend/android/app/build/reports/
+            frontend/android/build/reports/
           retention-days: 7
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/') && success()
         uses: softprops/action-gh-release@v1
         with:
-          files: frontend/android/app/build/outputs/apk/release/app-release.apk
+          files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          name: Abu Alzahra VoIP ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Status Report
         if: always()
         run: |
-          echo "📱 Android Build Status Report"
-          echo "================================"
+          echo "=============================="
+          echo "   Android Build Status"
+          echo "=============================="
           if [ "${{ job.status }}" = "success" ]; then
-            echo "✅ BUILD SUCCESSFUL"
-            echo "📦 APK available in artifacts"
+            echo "STATUS: BUILD SUCCESSFUL"
+            echo "APK available in the Actions artifacts tab"
           else
-            echo "❌ BUILD FAILED"
-            echo "🔍 Check logs for details"
+            echo "STATUS: BUILD FAILED"
+            echo "Check the logs above for details"
           fi
           echo ""
-          echo "Build Details:"
+          echo "Build Info:"
+          echo "- Node.js: 18.x"
           echo "- Java: 17 (Temurin)"
-          echo "- Node: 20.x"
-          echo "- Android SDK: 33"
-          echo "- Project: AbwCallNow"
-          echo "- API: abualzahracom.online:8000"
+          echo "- Gradle: 7.6.3"
+          echo "- AGP: 7.3.1"
+          echo "- App: Abu Alzahra VoIP"
+          echo "- Package: com.abualzahra.voip"
+          echo "=============================="
