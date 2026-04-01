@@ -45,11 +45,12 @@
     "scheme": "abu-alzahra-voip",
     "extra": {
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "d873633c-dedd-43e7-9e20-4dfabbdbed79"
       },
       "router": {
         "origin": false
       }
-    }
+    },
+    "owner": "mneer222"
   }
 }

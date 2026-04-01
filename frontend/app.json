@@ -16,7 +16,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.abualzahra.voip"
+      "bundleIdentifier": "com.abualzahra.voip",
+      "infoPlist": {
+        "NSContactsUsageDescription": "السماح لتطبيق أبو الزهرا بالوصول إلى جهات الاتصال"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +32,8 @@
         "android.permission.CAMERA",
         "android.permission.INTERNET",
         "android.permission.READ_CONTACTS",
-        "android.permission.CALL_PHONE"
+        "android.permission.CALL_PHONE",
+        "android.permission.WRITE_CONTACTS"
       ]
     },
     "web": {
@@ -48,6 +52,11 @@
           "contactsPermission": "السماح لتطبيق أبو الزهرا بالوصول إلى جهات الاتصال"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a8fd427b-760d-42c2-bc3c-b3b4f4056fc8"
+      }
+    }
   }
 }
