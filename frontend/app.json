@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AbwCallNow",
+    "name": "أبو الزهرا للاتصالات",
     "slug": "abwcallnow",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -23,7 +23,14 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#007AFF"
       },
-      "package": "com.abualzahra.voip"
+      "package": "com.abualzahra.voip",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.READ_CONTACTS",
+        "android.permission.CALL_PHONE"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -32,20 +39,15 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+          "cameraPermission": "السماح لتطبيق أبو الزهرا باستخدام الكاميرا"
         }
       ],
       [
         "expo-contacts",
         {
-          "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts"
+          "contactsPermission": "السماح لتطبيق أبو الزهرا بالوصول إلى جهات الاتصال"
         }
       ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      }
-    }
+    ]
   }
 }
