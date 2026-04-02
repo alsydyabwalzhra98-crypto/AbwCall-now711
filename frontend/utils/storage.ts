@@ -3,62 +3,87 @@ import { CONFIG } from '../constants/config';
 import { User } from '../types/auth';
 
 class StorageService {
-  async setToken(token: string): Promise<void> {
+  private async setItem(key: string, value: any): Promise<void> {
     try {
-      await AsyncStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_TOKEN, token);
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
-      console.error('Error setting token:', error);
+      console.error(`Error storing ${key}:`, error);
+      throw error;
     }
   }
 
-  async getToken(): Promise<string | null> {
+  private async getItem<T>(key: string): Promise<T | null> {
     try {
-      return await AsyncStorage.getItem(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+      const jsonValue = await AsyncStorage.getItem(key);
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (error) {
-      console.error('Error getting token:', error);
+      console.error(`Error retrieving ${key}:`, error);
       return null;
     }
+  }
+
+  private async removeItem(key: string): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (error) {
+      console.error(`Error removing ${key}:`, error);
+      throw error;
+    }
+  }
+
+  // Auth token methods
+  async getToken(): Promise<string | null> {
+    return this.getItem<string>(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+  }
+
+  async setToken(token: string): Promise<void> {
+    return this.setItem(CONFIG.STORAGE_KEYS.AUTH_TOKEN, token);
   }
 
   async removeToken(): Promise<void> {
-    try {
-      await AsyncStorage.removeItem(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
-    } catch (error) {
-      console.error('Error removing token:', error);
-    }
+    return this.removeItem(CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+  }
+
+  // User data methods
+  async getUser(): Promise<User | null> {
+    return this.getItem<User>(CONFIG.STORAGE_KEYS.USER_DATA);
   }
 
   async setUser(user: User): Promise<void> {
-    try {
-      await AsyncStorage.setItem(CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-    } catch (error) {
-      console.error('Error setting user:', error);
-    }
-  }
-
-  async getUser(): Promise<User | null> {
-    try {
-      const userData = await AsyncStorage.getItem(CONFIG.STORAGE_KEYS.USER_DATA);
-      return userData ? JSON.parse(userData) : null;
-    } catch (error) {
-      console.error('Error getting user:', error);
-      return null;
-    }
+    return this.setItem(CONFIG.STORAGE_KEYS.USER_DATA, user);
   }
 
   async removeUser(): Promise<void> {
+    return this.removeItem(CONFIG.STORAGE_KEYS.USER_DATA);
+  }
+
+  // Settings methods
+  async getSettings(): Promise<any> {
+    return this.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || {};
+  }
+
+  async setSettings(settings: any): Promise<void> {
+    return this.setItem(CONFIG.STORAGE_KEYS.SETTINGS, settings);
+  }
+
+  // Clear all data
+  async clearAll(): Promise<void> {
     try {
-      await AsyncStorage.removeItem(CONFIG.STORAGE_KEYS.USER_DATA);
+      await AsyncStorage.clear();
     } catch (error) {
-      console.error('Error removing user:', error);
+      console.error('Error clearing storage:', error);
+      throw error;
     }
   }
 
-  async clearAll(): Promise<void> {
+  // Get all keys
+  async getAllKeys(): Promise<string[]> {
     try {
-      await AsyncStorage.multiRemove(Object.values(CONFIG.STORAGE_KEYS));
+      return await AsyncStorage.getAllKeys();
     } catch (error) {
-      console.error('Error clearing storage:', error);
+      console.error('Error getting all keys:', error);
+      return [];
     }
   }
 }

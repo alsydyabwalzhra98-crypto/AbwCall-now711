@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
-  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
-import { Transaction } from '../../types/payment';
+import { Transaction } from '../../types/transaction';
 import { COLORS, SIZES } from '../../constants';
+import { WalletCard } from '../../components/WalletCard';
+import { TransactionItem } from '../../components/TransactionItem';
 import { formatDate } from '../../utils/formatting';
 
 export default function WalletScreen() {
@@ -28,86 +29,102 @@ export default function WalletScreen() {
     { amount: 100, bonus: 15 },
   ];
 
-  const handleQuickRecharge = (amount: number, bonus: number) => {
-    const totalAmount = amount + bonus;
-    const newBalance = (user?.balance || 0) + totalAmount;
-    
-    const transaction: Transaction = {
-      id: Math.random().toString(36),
-      type: 'recharge',
-      amount: totalAmount,
-      balance: newBalance,
-      description: `شحن الرصيد - ${amount} دولار + مكافأة ${bonus} دولار`,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-      completedAt: new Date().toISOString(),
-    };
+  useEffect(() => {
+    loadTransactions();
+  }, []);
 
-    setTransactions([transaction, ...transactions]);
-    updateBalance(newBalance);
-    Alert.alert('نجح', `تم شحن ${totalAmount} دولار بنجاح`);
+  const loadTransactions = () => {
+    // Mock transactions - replace with API call
+    const mockTransactions: Transaction[] = [
+      {
+        id: '1',
+        type: 'recharge',
+        amount: 50,
+        balance: 75,
+        description: 'شحن الرصيد',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        type: 'call',
+        amount: -2.5,
+        balance: 25,
+        description: 'مكالمة إلى +962XXXXXXXXX',
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+      },
+    ];
+    setTransactions(mockTransactions);
+  };
+
+  const handleRecharge = (amount: number) => {
+    Alert.alert(
+      'تأكيد الشحن',
+      `هل تريد شحن رصيد بقيمة $${amount}؟`,
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'شحن',
+          onPress: () => {
+            const newBalance = (user?.balance || 0) + amount;
+            updateBalance(newBalance);
+            setShowRechargeModal(false);
+            
+            // Add transaction
+            const newTransaction: Transaction = {
+              id: Date.now().toString(),
+              type: 'recharge',
+              amount,
+              balance: newBalance,
+              description: 'شحن الرصيد',
+              createdAt: new Date().toISOString(),
+            };
+            setTransactions([newTransaction, ...transactions]);
+            
+            Alert.alert('نجاح', 'تم شحن الرصيد بنجاح');
+          },
+        },
+      ]
+    );
   };
 
   const handleCustomRecharge = () => {
-    if (!rechargeAmount || isNaN(parseFloat(rechargeAmount))) {
+    const amount = parseFloat(rechargeAmount);
+    if (isNaN(amount) || amount <= 0) {
       Alert.alert('خطأ', 'يرجى إدخال مبلغ صحيح');
       return;
     }
-
-    const amount = parseFloat(rechargeAmount);
-    const newBalance = (user?.balance || 0) + amount;
-
-    const transaction: Transaction = {
-      id: Math.random().toString(36),
-      type: 'recharge',
-      amount,
-      balance: newBalance,
-      description: `شحن رصيد مخصص - ${amount} دولار`,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-      completedAt: new Date().toISOString(),
-    };
-
-    setTransactions([transaction, ...transactions]);
-    updateBalance(newBalance);
+    handleRecharge(amount);
     setRechargeAmount('');
-    setShowRechargeModal(false);
-    Alert.alert('نجح', `تم شحن ${amount} دولار بنجاح`);
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.balanceCard}>
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="wallet" size={24} color={COLORS.white} />
-          </View>
-          <Text style={styles.cardTitle}>المحفظة</Text>
-        </View>
-
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balanceLabel}>الرصيد الحالي</Text>
-          <Text style={styles.balanceAmount}>${user?.balance.toFixed(2) || '0.00'}</Text>
-        </View>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
+        <Text style={styles.title}>المحفظة</Text>
+        <TouchableOpacity style={styles.historyButton}>
+          <Ionicons name="time-outline" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
 
+      <WalletCard />
+
       <View style={styles.rechargeSection}>
-        <Text style={styles.sectionTitle}>اختر مبلغاً للشحن</Text>
-        <View style={styles.optionsGrid}>
-          {rechargeOptions.map((option, index) => (
+        <Text style={styles.sectionTitle}>شحن الرصيد</Text>
+        <View style={styles.rechargeOptions}>
+          {rechargeOptions.map((option) => (
             <TouchableOpacity
-              key={index}
-              style={styles.optionCard}
-              onPress={() => handleQuickRecharge(option.amount, option.bonus)}
+              key={option.amount}
+              style={styles.rechargeOption}
+              onPress={() => handleRecharge(option.amount)}
             >
-              <Text style={styles.optionAmount}>${option.amount}</Text>
+              <Text style={styles.rechargeAmount}>${option.amount}</Text>
               {option.bonus > 0 && (
-                <Text style={styles.optionBonus}>+ ${option.bonus} مكافأة</Text>
+                <Text style={styles.rechargeBonus}>+${option.bonus} هدية</Text>
               )}
             </TouchableOpacity>
           ))}
         </View>
-
+        
         <TouchableOpacity
           style={styles.customRechargeButton}
           onPress={() => setShowRechargeModal(true)}
@@ -118,26 +135,10 @@ export default function WalletScreen() {
       </View>
 
       <View style={styles.transactionsSection}>
-        <Text style={styles.sectionTitle}>السجل</Text>
-        {transactions.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="receipt-outline" size={48} color={COLORS.gray} />
-            <Text style={styles.emptyText}>لا توجد عمليات بعد</Text>
-          </View>
-        ) : (
-          transactions.map((transaction) => (
-            <View key={transaction.id} style={styles.transactionItem}>
-              <Ionicons name="add-circle" size={24} color={COLORS.success} />
-              <View style={styles.transactionInfo}>
-                <Text style={styles.description}>{transaction.description}</Text>
-                <Text style={styles.date}>{formatDate(transaction.createdAt)}</Text>
-              </View>
-              <Text style={[styles.amount, { color: COLORS.success }]}>
-                +${transaction.amount.toFixed(2)}
-              </Text>
-            </View>
-          ))
-        )}
+        <Text style={styles.sectionTitle}>آخر المعاملات</Text>
+        {transactions.map((transaction) => (
+          <TransactionItem key={transaction.id} transaction={transaction} />
+        ))}
       </View>
 
       <Modal
@@ -148,13 +149,14 @@ export default function WalletScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>أدخل المبلغ</Text>
+            <Text style={styles.modalTitle}>شحن بمبلغ مخصص</Text>
             <TextInput
               style={styles.amountInput}
-              placeholder="$0.00"
-              keyboardType="decimal-pad"
+              placeholder="أدخل المبلغ"
               value={rechargeAmount}
               onChangeText={setRechargeAmount}
+              keyboardType="numeric"
+              placeholderTextColor={COLORS.gray}
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -167,7 +169,7 @@ export default function WalletScreen() {
                 style={styles.modalConfirmButton}
                 onPress={handleCustomRecharge}
               >
-                <Text style={styles.modalConfirmText}>تأكيد</Text>
+                <Text style={styles.modalConfirmText}>شحن</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -182,48 +184,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  balanceCard: {
-    margin: SIZES.padding,
-    padding: SIZES.padding * 1.5,
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius * 1.5,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.padding * 2,
+    padding: SIZES.padding,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  logoContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SIZES.base,
-  },
-  cardTitle: {
-    fontSize: SIZES.h3,
+  title: {
+    fontSize: SIZES.h2,
     fontWeight: 'bold',
-    color: COLORS.white,
+    color: COLORS.text,
   },
-  balanceContainer: {
-    marginBottom: SIZES.padding * 2,
-  },
-  balanceLabel: {
-    fontSize: SIZES.body4,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: SIZES.base / 2,
-  },
-  balanceAmount: {
-    fontSize: SIZES.h1 * 1.5,
-    fontWeight: 'bold',
-    color: COLORS.white,
+  historyButton: {
+    padding: 8,
   },
   rechargeSection: {
     margin: SIZES.padding,
@@ -242,29 +218,29 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SIZES.padding,
   },
-  optionsGrid: {
+  rechargeOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: SIZES.padding,
   },
-  optionCard: {
+  rechargeOption: {
     width: '48%',
-    padding: SIZES.padding,
     backgroundColor: COLORS.lightGray,
+    padding: SIZES.padding,
     borderRadius: SIZES.radius,
     alignItems: 'center',
-    marginBottom: SIZES.padding,
+    marginBottom: SIZES.base,
   },
-  optionAmount: {
+  rechargeAmount: {
     fontSize: SIZES.h3,
     fontWeight: 'bold',
     color: COLORS.primary,
-    marginBottom: SIZES.base / 2,
   },
-  optionBonus: {
+  rechargeBonus: {
     fontSize: SIZES.body4,
     color: COLORS.success,
+    marginTop: 4,
   },
   customRechargeButton: {
     flexDirection: 'row',
@@ -282,47 +258,6 @@ const styles = StyleSheet.create({
   },
   transactionsSection: {
     margin: SIZES.padding,
-  },
-  transactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: SIZES.padding,
-    backgroundColor: COLORS.white,
-    marginBottom: SIZES.base,
-    borderRadius: SIZES.radius,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  transactionInfo: {
-    flex: 1,
-    marginLeft: SIZES.padding,
-  },
-  description: {
-    fontSize: SIZES.body3,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 2,
-  },
-  date: {
-    fontSize: SIZES.body4,
-    color: COLORS.gray,
-  },
-  amount: {
-    fontSize: SIZES.body3,
-    fontWeight: 'bold',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SIZES.padding * 4,
-  },
-  emptyText: {
-    fontSize: SIZES.body3,
-    color: COLORS.gray,
-    marginTop: SIZES.base,
   },
   modalOverlay: {
     flex: 1,

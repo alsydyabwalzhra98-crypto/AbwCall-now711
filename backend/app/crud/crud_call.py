@@ -27,8 +27,10 @@ class CRUDCall(CRUDBase[Call, CallCreate, CallUpdate]):
             .first()
         )
 
-    def create_with_user(self, db: Session, *, obj_in: CallCreate, user_id: int) -> Call:
-        obj_in_data = obj_in.model_dump()
+    def create_with_user(
+        self, db: Session, *, obj_in: CallCreate, user_id: int
+    ) -> Call:
+        obj_in_data = obj_in.dict()
         db_obj = self.model(**obj_in_data, user_id=user_id)
         db.add(db_obj)
         db.commit()

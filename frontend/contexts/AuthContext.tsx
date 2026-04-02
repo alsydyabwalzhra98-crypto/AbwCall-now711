@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { User } from '../types/auth';
+import { authAPI } from '../lib/api';
+import { storage } from '../utils/storage';
 
 interface AuthState {
   user: User | null;
@@ -77,26 +79,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    // Simulate loading from storage
-    dispatch({ type: 'SET_LOADING', payload: false });
+    loadStoredAuth();
   }, []);
+
+  const loadStoredAuth = async () => {
+    try {
+      const token = await storage.getToken();
+      const user = await storage.getUser();
+      
+      if (token && user) {
+        dispatch({ type: 'SET_USER', payload: { user, token } });
+      } else {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    } catch (error) {
+      console.error('Error loading stored auth:', error);
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
 
   const login = async (email: string, password: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      // Mock API call
-      const mockUser: User = {
-        id: '1',
-        name: 'محمد أحمد',
-        email,
-        balance: 50.0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const mockToken = 'mock-token-' + Math.random().toString(36);
-      dispatch({ type: 'SET_USER', payload: { user: mockUser, token: mockToken } });
+      const response = await authAPI.login(email, password);
+      const { user, token } = response.data;
+      
+      await storage.setToken(token);
+      await storage.setUser(user);
+      
+      dispatch({ type: 'SET_USER', payload: { user, token } });
     } catch (error: any) {
-      const message = error.message || 'فشل في تسجيل الدخول';
+      const message = error.response?.data?.message || 'فشل في تسجيل الدخول';
       dispatch({ type: 'SET_ERROR', payload: message });
       throw error;
     }
@@ -105,25 +118,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signup = async (name: string, email: string, password: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const mockUser: User = {
-        id: '1',
-        name,
-        email,
-        balance: 0.0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const mockToken = 'mock-token-' + Math.random().toString(36);
-      dispatch({ type: 'SET_USER', payload: { user: mockUser, token: mockToken } });
+      const response = await authAPI.signup(name, email, password);
+      const { user, token } = response.data;
+      
+      await storage.setToken(token);
+      await storage.setUser(user);
+      
+      dispatch({ type: 'SET_USER', payload: { user, token } });
     } catch (error: any) {
-      const message = error.message || 'فشل في إنشاء الحساب';
+      const message = error.response?.data?.message || 'فشل في إنشاء الحساب';
       dispatch({ type: 'SET_ERROR', payload: message });
       throw error;
     }
   };
 
-  const logout = () => {
-    dispatch({ type: 'LOGOUT' });
+  const logout = async () => {
+    try {
+      await storage.removeToken();
+      await storage.removeUser();
+      dispatch({ type: 'LOGOUT' });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const updateBalance = (newBalance: number) => {
@@ -146,4 +162,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export { AuthContext };
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

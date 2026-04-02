@@ -17,24 +17,26 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       theme: 'light',
       language: 'ar',
       notifications: true,
 
       setUser: (user) => set({ user }),
+
       setTheme: (theme) => set({ theme }),
+
       setLanguage: (language) => set({ language }),
+
       setNotifications: (notifications) => set({ notifications }),
 
-      clearStore: () =>
-        set({
-          user: null,
-          theme: 'light',
-          language: 'ar',
-          notifications: true,
-        }),
+      clearStore: () => set({
+        user: null,
+        theme: 'light',
+        language: 'ar',
+        notifications: true,
+      }),
     }),
     {
       name: 'app-storage',

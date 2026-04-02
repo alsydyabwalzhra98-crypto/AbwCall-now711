@@ -19,14 +19,18 @@ class CRUDContact(CRUDBase[Contact, ContactCreate, ContactUpdate]):
             .all()
         )
 
-    def get_user_favorites(self, db: Session, *, user_id: int) -> List[Contact]:
+    def get_user_favorites(
+        self, db: Session, *, user_id: int
+    ) -> List[Contact]:
         return (
             db.query(self.model)
             .filter(Contact.user_id == user_id, Contact.is_favorite == True)
             .all()
         )
 
-    def search_contacts(self, db: Session, *, user_id: int, query: str) -> List[Contact]:
+    def search_contacts(
+        self, db: Session, *, user_id: int, query: str
+    ) -> List[Contact]:
         return (
             db.query(self.model)
             .filter(
@@ -34,13 +38,16 @@ class CRUDContact(CRUDBase[Contact, ContactCreate, ContactUpdate]):
                 or_(
                     Contact.name.ilike(f"%{query}%"),
                     Contact.phone.ilike(f"%{query}%"),
+                    Contact.email.ilike(f"%{query}%")
                 )
             )
             .all()
         )
 
-    def create_with_user(self, db: Session, *, obj_in: ContactCreate, user_id: int) -> Contact:
-        obj_in_data = obj_in.model_dump()
+    def create_with_user(
+        self, db: Session, *, obj_in: ContactCreate, user_id: int
+    ) -> Contact:
+        obj_in_data = obj_in.dict()
         db_obj = self.model(**obj_in_data, user_id=user_id)
         db.add(db_obj)
         db.commit()

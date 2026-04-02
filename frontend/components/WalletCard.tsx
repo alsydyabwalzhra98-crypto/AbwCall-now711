@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS, SIZES } from '../constants/colors';
@@ -15,10 +15,27 @@ export const WalletCard: React.FC = () => {
         </View>
         <Text style={styles.cardTitle}>المحفظة</Text>
       </View>
-
+      
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>الرصيد الحالي</Text>
         <Text style={styles.balanceAmount}>${user?.balance.toFixed(2) || '0.00'}</Text>
+      </View>
+      
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.actionButton}>
+          <Ionicons name="add-circle" size={16} color={COLORS.white} />
+          <Text style={styles.actionText}>شحن</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.actionButton}>
+          <Ionicons name="arrow-down-circle" size={16} color={COLORS.white} />
+          <Text style={styles.actionText}>سحب</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.actionButton}>
+          <Ionicons name="swap-horizontal" size={16} color={COLORS.white} />
+          <Text style={styles.actionText}>تحويل</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -48,7 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SIZES.padding,
+    marginRight: SIZES.base,
   },
   cardTitle: {
     fontSize: SIZES.h3,
@@ -61,11 +78,29 @@ const styles = StyleSheet.create({
   balanceLabel: {
     fontSize: SIZES.body4,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: SIZES.padding / 2,
+    marginBottom: SIZES.base / 2,
   },
   balanceAmount: {
     fontSize: SIZES.h1 * 1.5,
     fontWeight: 'bold',
     color: COLORS.white,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.base / 2,
+    borderRadius: SIZES.radius,
+  },
+  actionText: {
+    fontSize: SIZES.body4,
+    color: COLORS.white,
+    marginLeft: SIZES.base / 2,
+    fontWeight: '500',
   },
 });

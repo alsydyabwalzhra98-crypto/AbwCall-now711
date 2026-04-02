@@ -1,16 +1,21 @@
-from typing import Any
+import stripe
+from typing import Dict, Any
+
+from app.core.config import settings
 
 
 class PaymentService:
     def __init__(self):
-        pass
+        stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    def create_payment_intent(self, amount: float, user_id: int) -> Any:
+    def create_payment_intent(self, amount: float, user_id: int) -> stripe.PaymentIntent:
+        """
+        Create a Stripe payment intent
+        """
         try:
-            import stripe
-            from app.core.config import settings
-            stripe.api_key = settings.STRIPE_SECRET_KEY
+            # Convert amount to cents
             amount_cents = int(amount * 100)
+            
             payment_intent = stripe.PaymentIntent.create(
                 amount=amount_cents,
                 currency="usd",
@@ -18,7 +23,17 @@ class PaymentService:
                 automatic_payment_methods={"enabled": True}
             )
             return payment_intent
-        except ImportError:
-            raise Exception("Stripe is not installed")
-        except Exception as e:
-            raise Exception(f"Payment error: {str(e)}")
+        except stripe.error.StripeError as e:
+            raise Exception(f"Stripe error: {str(e)}")
+
+    def construct_webhook_event(self, payload: bytes, sig_header: str) -> stripe.Event:
+        """
+        Construct and verify webhook event
+        """
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+            )
+            return event
+        except stripe.error.SignatureVerificationError as e:
+            raise Exception(f"Webhook signature verification failed: {str(e)}")

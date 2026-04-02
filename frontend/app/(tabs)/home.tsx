@@ -4,15 +4,16 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { COLORS, SIZES } from '../../constants';
+import { WalletCard } from '../../components/WalletCard';
+import { PhoneNumberInput } from '../../components/PhoneNumberInput';
+import { RateDisplay } from '../../components/RateDisplay';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const handleMakeCall = (phoneNumber?: string) => {
-    if (phoneNumber) {
-      router.push(`/call/${phoneNumber}`);
-    }
+  const handleMakeCall = (phoneNumber: string) => {
+    router.push(`/call/${phoneNumber}`);
   };
 
   const quickActions = [
@@ -51,23 +52,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceHeader}>
-          <Ionicons name="wallet" size={24} color={COLORS.white} />
-          <Text style={styles.cardTitle}>المحفظة</Text>
-        </View>
-
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balanceLabel}>الرصيد الحالي</Text>
-          <Text style={styles.balanceAmount}>${user?.balance.toFixed(2) || '0.00'}</Text>
-        </View>
-      </View>
+      <WalletCard />
 
       <View style={styles.callSection}>
         <Text style={styles.sectionTitle}>إجراء مكالمة</Text>
-        <TouchableOpacity style={styles.dialButton}>
-          <Ionicons name="call" size={32} color={COLORS.white} />
-        </TouchableOpacity>
+        <PhoneNumberInput onSubmit={handleMakeCall} />
+        <RateDisplay />
       </View>
 
       <View style={styles.actionsSection}>
@@ -110,47 +100,11 @@ const styles = StyleSheet.create({
   profileButton: {
     padding: 4,
   },
-  balanceCard: {
-    margin: SIZES.padding,
-    padding: SIZES.padding * 1.5,
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius * 1.5,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  balanceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SIZES.padding * 2,
-  },
-  cardTitle: {
-    fontSize: SIZES.h3,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    marginLeft: SIZES.base,
-  },
-  balanceContainer: {
-    marginBottom: SIZES.padding * 2,
-  },
-  balanceLabel: {
-    fontSize: SIZES.body4,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: SIZES.base / 2,
-  },
-  balanceAmount: {
-    fontSize: SIZES.h1 * 1.5,
-    fontWeight: 'bold',
-    color: COLORS.white,
-  },
   callSection: {
     backgroundColor: COLORS.white,
     margin: SIZES.padding,
     padding: SIZES.padding,
     borderRadius: SIZES.radius,
-    alignItems: 'center',
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -162,14 +116,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     marginBottom: SIZES.padding,
-  },
-  dialButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   actionsSection: {
     padding: SIZES.padding,

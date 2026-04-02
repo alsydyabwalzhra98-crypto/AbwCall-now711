@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Contact } from '../types/contact';
+import { contactAPI } from '../lib/api';
 
 export const useContacts = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -10,7 +11,8 @@ export const useContacts = () => {
     setLoading(true);
     setError(null);
     try {
-      setContacts([]);
+      const response = await contactAPI.getContacts();
+      setContacts(response.data);
     } catch (err: any) {
       setError(err.message || 'فشل في جلب جهات الاتصال');
     } finally {
@@ -18,24 +20,31 @@ export const useContacts = () => {
     }
   };
 
-  const addContact = async (contact: { name: string; phone: string }) => {
+  const addContact = async (data: { name: string; phone: string }) => {
     try {
-      const newContact: Contact = {
-        id: Math.random().toString(36),
-        name: contact.name,
-        phone: contact.phone,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setContacts([...contacts, newContact]);
+      const response = await contactAPI.addContact(data.name, data.phone);
+      setContacts([...contacts, response.data]);
     } catch (err: any) {
       setError(err.message || 'فشل في إضافة جهة الاتصال');
       throw err;
     }
   };
 
+  const updateContact = async (id: string, data: Partial<Contact>) => {
+    try {
+      const response = await contactAPI.updateContact(id, data);
+      setContacts(contacts.map(contact => 
+        contact.id === id ? response.data : contact
+      ));
+    } catch (err: any) {
+      setError(err.message || 'فشل في تحديث جهة الاتصال');
+      throw err;
+    }
+  };
+
   const deleteContact = async (id: string) => {
     try {
+      await contactAPI.deleteContact(id);
       setContacts(contacts.filter(contact => contact.id !== id));
     } catch (err: any) {
       setError(err.message || 'فشل في حذف جهة الاتصال');
@@ -47,10 +56,8 @@ export const useContacts = () => {
     setLoading(true);
     setError(null);
     try {
-      setContacts(contacts.filter(c =>
-        c.name.toLowerCase().includes(query.toLowerCase()) ||
-        c.phone.includes(query)
-      ));
+      const response = await contactAPI.searchContacts(query);
+      setContacts(response.data);
     } catch (err: any) {
       setError(err.message || 'فشل في البحث عن جهات الاتصال');
     } finally {
@@ -68,6 +75,7 @@ export const useContacts = () => {
     error,
     getContacts,
     addContact,
+    updateContact,
     deleteContact,
     searchContacts,
   };

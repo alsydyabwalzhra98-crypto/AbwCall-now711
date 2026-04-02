@@ -12,7 +12,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   wait: number
 ): ((...args: Parameters<T>) => void) => {
   let timeout: NodeJS.Timeout;
-
+  
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -24,7 +24,7 @@ export const throttle = <T extends (...args: any[]) => any>(
   limit: number
 ): ((...args: Parameters<T>) => void) => {
   let inThrottle: boolean;
-
+  
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args);
@@ -42,14 +42,16 @@ export const formatCurrency = (amount: number, currency = 'USD'): string => {
 };
 
 export const formatPhoneNumber = (phoneNumber: string): string => {
+  // Remove all non-numeric characters
   const cleaned = phoneNumber.replace(/\D/g, '');
-
+  
+  // Format based on length
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
   } else if (cleaned.length > 10) {
     return `+${cleaned.slice(0, -10)} (${cleaned.slice(-10, -7)}) ${cleaned.slice(-7, -4)}-${cleaned.slice(-4)}`;
   }
-
+  
   return phoneNumber;
 };
 
@@ -75,6 +77,6 @@ export const getRelativeTime = (date: string | Date): string => {
   if (diffInSeconds < 3600) return `قبل ${Math.floor(diffInSeconds / 60)} دقيقة`;
   if (diffInSeconds < 86400) return `قبل ${Math.floor(diffInSeconds / 3600)} ساعة`;
   if (diffInSeconds < 604800) return `قبل ${Math.floor(diffInSeconds / 86400)} يوم`;
-
+  
   return past.toLocaleDateString('ar-SA');
 };

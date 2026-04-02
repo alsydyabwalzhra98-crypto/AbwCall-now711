@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h2,
     fontWeight: 'bold',
     color: COLORS.text,
-    marginTop: SIZES.padding * 2,
+    marginTop: SIZES.padding,
     marginBottom: SIZES.base,
   },
   message: {
@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius,
   },
   buttonText: {
-    fontSize: SIZES.body3,
-    fontWeight: 'bold',
     color: COLORS.white,
+    fontSize: SIZES.body3,
+    fontWeight: '600',
   },
 });

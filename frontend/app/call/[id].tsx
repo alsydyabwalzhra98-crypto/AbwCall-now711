@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useCall } from '../../hooks/useCall';
-import { CallInterface } from '../../components/CallInterface';
-import { COLORS, SIZES } from '../../constants';
+import { useCall } from '../../../hooks/useCall';
+import { CallInterface } from '../../../components/CallInterface';
+import { COLORS, SIZES } from '../../../constants';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -61,10 +61,12 @@ export default function CallScreen() {
 
   const handleToggleMute = () => {
     setIsMuted(!isMuted);
+    // Implement mute functionality
   };
 
   const handleToggleSpeaker = () => {
     setIsSpeakerOn(!isSpeakerOn);
+    // Implement speaker functionality
   };
 
   const formatDuration = (seconds: number): string => {

@@ -17,7 +17,7 @@ export const RateDisplay: React.FC = () => {
         <Ionicons name="pricetag" size={20} color={COLORS.primary} />
         <Text style={styles.title}>أسعار المكالمات</Text>
       </View>
-
+      
       <View style={styles.ratesList}>
         {rates.map((rate, index) => (
           <View key={index} style={styles.rateItem}>

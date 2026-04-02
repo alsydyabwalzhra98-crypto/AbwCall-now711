@@ -1,3 +1,88 @@
-// File: docker-compose.yml
+version: '3.8'
 
-export default function placeholder() { return null; }
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:13
+    container_name: abualzahra_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: abualzahra_voip
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - abualzahra_network
+
+  # Redis for caching
+  redis:
+    image: redis:6-alpine
+    container_name: abualzahra_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - abualzahra_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: abualzahra_backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/abualzahra_voip
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+    networks:
+      - abualzahra_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend (for web version)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: abualzahra_frontend
+    ports:
+      - "19006:19006"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - abualzahra_network
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.100  # Change to your IP
+
+  # Nginx for reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: abualzahra_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - abualzahra_network
+
+volumes:
+  postgres_data:
+
+networks:
+  abualzahra_network:
+    driver: bridge

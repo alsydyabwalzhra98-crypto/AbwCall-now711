@@ -1,13 +1,13 @@
-from typing import Generator
+from typing import Generator, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import verify_token
 from app.db.session import get_db
-from app.crud import user as crud_user
+from app.crud import crud_user
 from app.models.user import User
 from app.schemas.user import TokenData
 
@@ -28,10 +28,11 @@ def get_current_user(
         user_id = verify_token(token)
         if user_id is None:
             raise credentials_exception
+        token_data = TokenData(username=user_id)
     except JWTError:
         raise credentials_exception
-
-    user = crud_user.get(db, id=int(user_id))
+    
+    user = crud_user.user.get(db, id=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -40,7 +41,7 @@ def get_current_user(
 def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if not crud_user.is_active(current_user):
+    if not crud_user.user.is_active(current_user):
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
@@ -48,7 +49,7 @@ def get_current_active_user(
 def get_current_active_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if not crud_user.is_superuser(current_user):
+    if not crud_user.user.is_superuser(current_user):
         raise HTTPException(
             status_code=400, detail="The user doesn't have enough privileges"
         )

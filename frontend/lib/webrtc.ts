@@ -1,38 +1,55 @@
-import { RTCPeerConnection, RTCSessionDescription, mediaDevices } from 'react-native-webrtc';
+import { RTCPeerConnection, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
 
-class WebRTCService {
+export class WebRTCService {
   private peerConnection: RTCPeerConnection | null = null;
   private localStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
 
-  async initialize(): Promise<void> {
+  constructor() {
+    this.initializePeerConnection();
+  }
+
+  private initializePeerConnection() {
+    const configuration = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        // Add your TURN servers here
+      ],
+    };
+
+    this.peerConnection = new RTCPeerConnection(configuration);
+
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        // Send ICE candidate to signaling server
+        this.sendIceCandidate(event.candidate);
+      }
+    };
+
+    this.peerConnection.onaddstream = (event) => {
+      this.remoteStream = event.stream;
+      // Handle remote stream
+    };
+  }
+
+  async createLocalStream(): Promise<MediaStream> {
     try {
-      const peerConnectionConfig = {
-        iceServers: [
-          { urls: ['stun:stun.l.google.com:19302'] },
-          { urls: ['stun:stun1.l.google.com:19302'] },
-        ],
-      };
-
-      this.peerConnection = new RTCPeerConnection(peerConnectionConfig);
-
-      this.peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-          console.log('New ICE candidate:', event.candidate);
-        }
-      };
-
-      this.peerConnection.onaddstream = (event) => {
-        this.remoteStream = event.stream;
-      };
-
-      const constraints = { audio: true, video: false };
-      this.localStream = await mediaDevices.getUserMedia(constraints);
-      this.localStream.getTracks().forEach((track) => {
-        this.peerConnection?.addTrack(track, this.localStream!);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false, // Set to true if video is needed
       });
+      
+      this.localStream = stream;
+      
+      if (this.peerConnection) {
+        stream.getTracks().forEach((track) => {
+          this.peerConnection!.addTrack(track, stream);
+        });
+      }
+      
+      return stream;
     } catch (error) {
-      console.error('WebRTC initialization error:', error);
+      console.error('Error creating local stream:', error);
       throw error;
     }
   }
@@ -41,47 +58,65 @@ class WebRTCService {
     if (!this.peerConnection) {
       throw new Error('Peer connection not initialized');
     }
-    return this.peerConnection.createOffer();
+
+    const offer = await this.peerConnection.createOffer();
+    await this.peerConnection.setLocalDescription(offer);
+    
+    return offer;
   }
 
   async createAnswer(offer: RTCSessionDescription): Promise<RTCSessionDescription> {
     if (!this.peerConnection) {
       throw new Error('Peer connection not initialized');
     }
+
     await this.peerConnection.setRemoteDescription(offer);
-    return this.peerConnection.createAnswer();
+    const answer = await this.peerConnection.createAnswer();
+    await this.peerConnection.setLocalDescription(answer);
+    
+    return answer;
   }
 
-  async setLocalDescription(desc: RTCSessionDescription): Promise<void> {
+  async handleAnswer(answer: RTCSessionDescription): Promise<void> {
     if (!this.peerConnection) {
       throw new Error('Peer connection not initialized');
     }
-    await this.peerConnection.setLocalDescription(desc);
+
+    await this.peerConnection.setRemoteDescription(answer);
   }
 
-  async setRemoteDescription(desc: RTCSessionDescription): Promise<void> {
+  async handleIceCandidate(candidate: RTCIceCandidate): Promise<void> {
     if (!this.peerConnection) {
       throw new Error('Peer connection not initialized');
     }
-    await this.peerConnection.setRemoteDescription(desc);
-  }
 
-  async addIceCandidate(candidate: any): Promise<void> {
-    if (!this.peerConnection) {
-      throw new Error('Peer connection not initialized');
-    }
     await this.peerConnection.addIceCandidate(candidate);
   }
 
-  async hangup(): Promise<void> {
+  private sendIceCandidate(candidate: RTCIceCandidate) {
+    // Send candidate to signaling server via WebSocket or API
+    console.log('Sending ICE candidate:', candidate);
+  }
+
+  muteAudio(mute: boolean): void {
+    if (this.localStream) {
+      this.localStream.getAudioTracks().forEach((track) => {
+        track.enabled = !mute;
+      });
+    }
+  }
+
+  endCall(): void {
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
       this.localStream = null;
     }
+
     if (this.peerConnection) {
       this.peerConnection.close();
       this.peerConnection = null;
     }
+
     this.remoteStream = null;
   }
 
@@ -93,5 +128,3 @@ class WebRTCService {
     return this.remoteStream;
   }
 }
-
-export const webrtcService = new WebRTCService();

@@ -23,14 +23,16 @@ class CRUDTransaction(CRUDBase[Transaction, TransactionCreate, TransactionUpdate
     def create_with_user(
         self, db: Session, *, obj_in: TransactionCreate, user_id: int, balance: float
     ) -> Transaction:
-        obj_in_data = obj_in.model_dump()
+        obj_in_data = obj_in.dict()
         db_obj = self.model(**obj_in_data, user_id=user_id, balance=balance)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return db_obj
 
-    def get_recharge_transactions(self, db: Session, *, user_id: int) -> List[Transaction]:
+    def get_recharge_transactions(
+        self, db: Session, *, user_id: int
+    ) -> List[Transaction]:
         return (
             db.query(self.model)
             .filter(
@@ -39,13 +41,6 @@ class CRUDTransaction(CRUDBase[Transaction, TransactionCreate, TransactionUpdate
             )
             .order_by(desc(Transaction.created_at))
             .all()
-        )
-
-    def get_by_stripe_payment_id(self, db: Session, payment_id: str) -> Optional[Transaction]:
-        return (
-            db.query(self.model)
-            .filter(Transaction.stripe_payment_id == payment_id)
-            .first()
         )
 
 

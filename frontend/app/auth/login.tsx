@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { COLORS, SIZES } from '../../constants';
-import { validateEmail, validatePassword } from '../../utils/validators';
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -28,6 +28,7 @@ export default function LoginScreen() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
+    // Clear error when user starts typing
     if (errors[field as keyof typeof errors]) {
       setErrors({ ...errors, [field]: '' });
     }
@@ -39,7 +40,7 @@ export default function LoginScreen() {
       password: validatePassword(formData.password),
     };
 
-    setErrors(newErrors as any);
+    setErrors(newErrors);
     return !newErrors.email && !newErrors.password;
   };
 

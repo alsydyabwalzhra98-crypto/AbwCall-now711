@@ -1,10 +1,10 @@
 export const CONFIG = {
   // API Configuration
-  API_BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://66.42.113.157:8000/api',
+  API_BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api',
   API_TIMEOUT: 10000,
   
   // WebSocket Configuration
-  WEBSOCKET_URL: process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'ws://66.42.113.157:8000/ws',
+  WEBSOCKET_URL: process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8000/ws',
   
   // Twilio Configuration
   TWILIO_ACCOUNT_SID: process.env.EXPO_PUBLIC_TWILIO_ACCOUNT_SID || '',
@@ -20,7 +20,7 @@ export const CONFIG = {
   DEBOUNCE_DELAY: 500,
   
   // Call Configuration
-  MAX_CALL_DURATION: 7200,
+  MAX_CALL_DURATION: 7200, // 2 hours in seconds
   CALL_RETRY_ATTEMPTS: 3,
   CALL_RETRY_DELAY: 1000,
   

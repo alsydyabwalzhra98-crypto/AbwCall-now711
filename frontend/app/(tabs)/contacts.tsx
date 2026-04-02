@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,44 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useContacts } from '../../hooks/useContacts';
 import { Contact } from '../../types/contact';
 import { COLORS, SIZES } from '../../constants';
+import { ContactItem } from '../../components/ContactItem';
+import { ContactList } from '../../components/ContactList';
 
 export default function ContactsScreen() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const {
+    contacts,
+    loading,
+    getContacts,
+    addContact,
+    deleteContact,
+    searchContacts,
+  } = useContacts();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', phone: '' });
+
+  useEffect(() => {
+    loadContacts();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery) {
+      searchContacts(searchQuery);
+    } else {
+      loadContacts();
+    }
+  }, [searchQuery]);
+
+  const loadContacts = async () => {
+    try {
+      await getContacts();
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+    }
+  };
 
   const handleAddContact = async () => {
     if (!newContact.name || !newContact.phone) {
@@ -25,16 +55,10 @@ export default function ContactsScreen() {
     }
 
     try {
-      const contact: Contact = {
-        id: Math.random().toString(36),
-        name: newContact.name,
-        phone: newContact.phone,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setContacts([...contacts, contact]);
+      await addContact(newContact);
       setNewContact({ name: '', phone: '' });
       setShowAddForm(false);
+      loadContacts();
     } catch (error) {
       Alert.alert('خطأ', 'فشل في إضافة جهة الاتصال');
     }
@@ -49,30 +73,18 @@ export default function ContactsScreen() {
         {
           text: 'حذف',
           style: 'destructive',
-          onPress: () => {
-            setContacts(contacts.filter(c => c.id !== contactId));
+          onPress: async () => {
+            try {
+              await deleteContact(contactId);
+              loadContacts();
+            } catch (error) {
+              Alert.alert('خطأ', 'فشل في حذف جهة الاتصال');
+            }
           },
         },
       ]
     );
   };
-
-  const renderContactItem = ({ item }: { item: Contact }) => (
-    <View style={styles.contactItem}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>
-          {item.name.charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <View style={styles.contactInfo}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.phone}>{item.phone}</Text>
-      </View>
-      <TouchableOpacity>
-        <Ionicons name="call" size={20} color={COLORS.primary} />
-      </TouchableOpacity>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -123,19 +135,10 @@ export default function ContactsScreen() {
         </View>
       )}
 
-      <FlatList
-        data={contacts.filter(c =>
-          c.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )}
-        renderItem={renderContactItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={48} color={COLORS.gray} />
-            <Text style={styles.emptyText}>لا توجد جهات اتصال</Text>
-          </View>
-        }
+      <ContactList
+        contacts={contacts}
+        loading={loading}
+        onDeleteContact={handleDeleteContact}
       />
     </View>
   );
@@ -238,58 +241,5 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body3,
     color: COLORS.white,
     fontWeight: '600',
-  },
-  list: {
-    padding: SIZES.padding,
-  },
-  contactItem: {
-    backgroundColor: COLORS.white,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.base,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SIZES.padding,
-  },
-  avatarText: {
-    fontSize: SIZES.h2,
-    fontWeight: 'bold',
-    color: COLORS.white,
-  },
-  contactInfo: {
-    flex: 1,
-  },
-  name: {
-    fontSize: SIZES.body3,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 2,
-  },
-  phone: {
-    fontSize: SIZES.body4,
-    color: COLORS.gray,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SIZES.padding * 4,
-  },
-  emptyText: {
-    fontSize: SIZES.body3,
-    color: COLORS.gray,
-    marginTop: SIZES.base,
   },
 });

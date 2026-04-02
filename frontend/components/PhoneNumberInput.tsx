@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants/colors';
-import { validatePhoneNumber } from '../utils/validators';
+import { validatePhoneNumber } from '../utils/validation';
 
 interface PhoneNumberInputProps {
   onSubmit: (phoneNumber: string) => void;
@@ -28,7 +28,7 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       setError(validationError);
       return;
     }
-
+    
     setError('');
     onSubmit(phoneNumber);
     setPhoneNumber('');

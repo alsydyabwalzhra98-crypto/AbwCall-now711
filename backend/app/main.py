@@ -6,18 +6,23 @@ import logging
 
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.core.logging import setup_logging
 from app.db.session import engine
 from app.db.base import Base
 
-logging.basicConfig(level=logging.INFO)
+# Setup logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup
     logger.info("Starting up Abu Alzahra VoIP API...")
+    # Create tables
     Base.metadata.create_all(bind=engine)
     yield
+    # Shutdown
     logger.info("Shutting down Abu Alzahra VoIP API...")
 
 
@@ -29,6 +34,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Set up CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -55,6 +61,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
+# Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
@@ -63,6 +70,7 @@ async def root():
     return {
         "message": "Welcome to Abu Alzahra VoIP API",
         "version": settings.VERSION,
+        "docs": f"{settings.API_V1_STR}/docs"
     }
 
 

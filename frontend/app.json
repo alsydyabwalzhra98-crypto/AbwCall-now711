@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "أبو الزهرا للاتصالات",
-    "slug": "abwcallnow",
+    "slug": "abu-alzahra-voip",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,8 +17,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.abualzahra.voip",
+      "buildNumber": "1.0.0",
       "infoPlist": {
-        "NSContactsUsageDescription": "السماح لتطبيق أبو الزهرا بالوصول إلى جهات الاتصال"
+        "NSCameraUsageDescription": "This app uses camera for video calls",
+        "NSMicrophoneUsageDescription": "This app uses microphone for voice calls",
+        "NSContactsUsageDescription": "This app accesses contacts for easy calling"
       }
     },
     "android": {
@@ -27,35 +30,42 @@
         "backgroundColor": "#007AFF"
       },
       "package": "com.abualzahra.voip",
+      "versionCode": 1,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.INTERNET",
-        "android.permission.READ_CONTACTS",
-        "android.permission.CALL_PHONE",
-        "android.permission.WRITE_CONTACTS"
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_CONTACTS",
+        "WRITE_CONTACTS"
       ]
     },
     "web": {
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
+      "expo-font",
       [
         "expo-camera",
         {
-          "cameraPermission": "السماح لتطبيق أبو الزهرا باستخدام الكاميرا"
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+        }
+      ],
+      [
+        "expo-microphone",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ],
       [
         "expo-contacts",
         {
-          "contactsPermission": "السماح لتطبيق أبو الزهرا بالوصول إلى جهات الاتصال"
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts"
         }
       ]
     ],
     "extra": {
       "eas": {
-        "projectId": "a8fd427b-760d-42c2-bc3c-b3b4f4056fc8"
+        "projectId": "your-project-id"
       }
     }
   }

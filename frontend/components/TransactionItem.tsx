@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Transaction } from '../types/payment';
+import { Transaction } from '../types/transaction';
 import { COLORS, SIZES } from '../constants/colors';
 import { formatDate } from '../utils/formatting';
 
@@ -21,12 +21,12 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       <View style={styles.iconContainer}>
         <Ionicons name={icon} size={24} color={iconColor} />
       </View>
-
+      
       <View style={styles.transactionInfo}>
         <Text style={styles.description}>{transaction.description}</Text>
         <Text style={styles.date}>{formatDate(transaction.createdAt)}</Text>
       </View>
-
+      
       <View style={styles.amountContainer}>
         <Text style={[styles.amount, { color: iconColor }]}>
           {isCredit ? '+' : ''}${transaction.amount.toFixed(2)}

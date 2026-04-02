@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { CallRecord } from '../types/call';
+import { callAPI } from '../lib/api';
 
 interface CallState {
   currentCall: CallRecord | null;
@@ -83,24 +84,18 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({
     dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
 
     try {
-      const mockCall: CallRecord = {
-        id: Math.random().toString(36),
-        phoneNumber,
-        status: 'ongoing',
-        duration: 0,
-        cost: 0,
-        startedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: 'SET_CURRENT_CALL', payload: mockCall });
+      const response = await callAPI.makeCall(phoneNumber);
+      const call = response.data;
+      
+      dispatch({ type: 'SET_CURRENT_CALL', payload: call });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ringing' });
-
+      
+      // Simulate call connection
       setTimeout(() => {
         dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
       }, 2000);
     } catch (error: any) {
-      const message = error.message || 'فشل في إجراء المكالمة';
+      const message = error.response?.data?.message || 'فشل في إجراء المكالمة';
       dispatch({ type: 'SET_ERROR', payload: message });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'idle' });
       throw error;
@@ -109,28 +104,27 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const endCall = () => {
     if (state.currentCall) {
+      // Update call record
       const endedCall = {
         ...state.currentCall,
         status: 'completed' as const,
         endedAt: new Date().toISOString(),
       };
-
+      
       dispatch({ type: 'SET_CALL_HISTORY', payload: [endedCall, ...state.callHistory] });
     }
-
+    
     dispatch({ type: 'END_CALL' });
   };
 
   const getCallHistory = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      // Mock data
-      const mockHistory: CallRecord[] = [];
-      dispatch({ type: 'SET_CALL_HISTORY', payload: mockHistory });
+      const response = await callAPI.getCallHistory();
+      dispatch({ type: 'SET_CALL_HISTORY', payload: response.data });
     } catch (error: any) {
-      const message = error.message || 'فشل في جلب سجل المكالمات';
+      const message = error.response?.data?.message || 'فشل في جلب سجل المكالمات';
       dispatch({ type: 'SET_ERROR', payload: message });
-      throw error;
     }
   };
 
@@ -149,4 +143,10 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>;
 };
 
-export { CallContext };
+export const useCall = (): CallContextType => {
+  const context = useContext(CallContext);
+  if (context === undefined) {
+    throw new Error('useCall must be used within a CallProvider');
+  }
+  return context;
+};

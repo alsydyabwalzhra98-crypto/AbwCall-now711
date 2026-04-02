@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants/colors';
 
 interface CallInterfaceProps {
-  callStatus: 'idle' | 'connecting' | 'ringing' | 'connected' | 'ended';
+  callStatus: 'connecting' | 'ringing' | 'connected' | 'ended';
   isMuted: boolean;
   isSpeakerOn: boolean;
   onEndCall: () => void;
@@ -22,74 +22,80 @@ export const CallInterface: React.FC<CallInterfaceProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      {callStatus === 'connected' && (
-        <View style={styles.controls}>
-          <TouchableOpacity
-            style={[styles.button, isMuted && styles.buttonActive]}
-            onPress={onToggleMute}
-          >
-            <Ionicons
-              name={isMuted ? 'mic-off' : 'mic'}
-              size={24}
-              color={COLORS.white}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, isSpeakerOn && styles.buttonActive]}
-            onPress={onToggleSpeaker}
-          >
-            <Ionicons
-              name={isSpeakerOn ? 'volume-high' : 'volume-mute'}
-              size={24}
-              color={COLORS.white}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.endButton} onPress={onEndCall}>
-            <Ionicons name="call" size={24} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {callStatus === 'connecting' || callStatus === 'ringing' ? (
-        <TouchableOpacity style={styles.endButton} onPress={onEndCall}>
-          <Ionicons name="close" size={24} color={COLORS.white} />
+      <View style={styles.controls}>
+        <TouchableOpacity
+          style={[styles.controlButton, isMuted && styles.controlButtonActive]}
+          onPress={onToggleMute}
+        >
+          <Ionicons
+            name={isMuted ? 'mic-off' : 'mic'}
+            size={24}
+            color={COLORS.white}
+          />
         </TouchableOpacity>
-      ) : null}
+
+        <TouchableOpacity
+          style={[styles.controlButton, isSpeakerOn && styles.controlButtonActive]}
+          onPress={onToggleSpeaker}
+        >
+          <Ionicons
+            name={isSpeakerOn ? 'volume-high' : 'volume-medium'}
+            size={24}
+            color={COLORS.white}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.controlButton}>
+          <Ionicons name="videocam" size={24} color={COLORS.white} />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={[
+          styles.endCallButton,
+          callStatus === 'ended' && styles.endCallButtonDisabled,
+        ]}
+        onPress={onEndCall}
+        disabled={callStatus === 'ended'}
+      >
+        <Ionicons name="call" size={32} color={COLORS.white} />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: SIZES.padding * 2,
-    alignItems: 'center',
+    padding: SIZES.padding * 2,
+    paddingBottom: SIZES.padding * 3,
   },
   controls: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginBottom: SIZES.padding * 2,
   },
-  button: {
+  controlButton: {
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: SIZES.padding,
   },
-  buttonActive: {
+  controlButtonActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
-  endButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+  endCallButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.error,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SIZES.padding * 2,
+    alignSelf: 'center',
+    transform: [{ rotate: '135deg' }],
+  },
+  endCallButtonDisabled: {
+    backgroundColor: COLORS.gray,
   },
 });

@@ -13,12 +13,13 @@ class TransactionBase(BaseModel):
 
 
 class TransactionCreate(TransactionBase):
-    stripe_payment_id: Optional[str] = None
-    status: Optional[TransactionStatus] = TransactionStatus.PENDING
+    pass
 
 
 class TransactionUpdate(BaseModel):
+    description: Optional[str] = None
     status: Optional[TransactionStatus] = None
+    stripe_payment_id: Optional[str] = None
     completed_at: Optional[datetime] = None
 
 

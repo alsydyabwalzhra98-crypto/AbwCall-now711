@@ -20,7 +20,7 @@ class TransactionStatus(str, enum.Enum):
 
 class Transaction(BaseModel):
     __tablename__ = "transactions"
-
+    
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     type = Column(Enum(TransactionType), nullable=False)
     amount = Column(Float, nullable=False)
@@ -30,5 +30,6 @@ class Transaction(BaseModel):
     payment_method = Column(String)
     stripe_payment_id = Column(String)
     completed_at = Column(DateTime(timezone=True))
-
+    
+    # Relationships
     user = relationship("User", back_populates="transactions")

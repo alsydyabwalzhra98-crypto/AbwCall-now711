@@ -13,32 +13,40 @@ A VoIP calling application with an Arabic-first interface for affordable interna
 ## Project Structure
 ```
 /
-├── app/                  # Expo Router screens (root-level, main entry)
-│   ├── _layout.tsx       # Root layout
-│   ├── splash.tsx        # Splash/routing screen
-│   ├── auth/             # Login & signup screens
-│   ├── (tabs)/           # Main tab screens (home, calls, contacts, wallet)
-│   └── call/             # Call interface screen
-├── assets/               # Static assets (images, fonts)
-├── components/           # Reusable UI components
-├── constants/            # App constants (colors, sizes)
-├── contexts/             # React contexts (AuthContext, CallContext)
-├── hooks/                # Custom hooks
-├── lib/                  # API client, utilities
-├── store/                # Zustand state management
-├── types/                # TypeScript types
-├── utils/                # Utility functions
+├── app/                  # Root Expo app screens (web dev server)
+├── frontend/             # Main mobile app (Android build target)
+│   ├── app/              # Expo Router screens
+│   │   ├── _layout.tsx
+│   │   ├── splash.tsx
+│   │   ├── auth/         # Login & signup
+│   │   ├── (tabs)/       # Home, calls, contacts, wallet
+│   │   └── call/[id].tsx # Call screen
+│   ├── components/       # Reusable UI components
+│   ├── constants/        # Colors, sizes, config
+│   ├── contexts/         # AuthContext, CallContext
+│   ├── hooks/            # useAuth, useCall, useContacts
+│   ├── lib/              # API client, firebase, webrtc
+│   ├── store/            # Zustand state
+│   ├── types/            # TypeScript types
+│   ├── utils/            # Validation, formatting, storage
+│   ├── android/          # Native Android project (Gradle build)
+│   ├── assets/           # Images and fonts
+│   ├── app.json          # Expo config
+│   ├── package.json      # Dependencies (Expo 49, RN 0.72)
+│   └── eas.json          # EAS Build config
 ├── backend/              # FastAPI backend
 │   ├── app/
-│   │   ├── api/v1/       # REST API endpoints
-│   │   ├── core/         # Config, security
+│   │   ├── api/v1/       # REST endpoints (auth, calls, contacts, transactions)
+│   │   ├── core/         # Config (Pydantic V2), security
 │   │   ├── crud/         # Database operations
-│   │   ├── db/           # Database session, base models
-│   │   ├── models/       # SQLAlchemy models
+│   │   ├── db/           # SQLAlchemy session
+│   │   ├── models/       # DB models
 │   │   ├── schemas/      # Pydantic schemas
-│   │   └── services/     # Business logic (Twilio, payments)
+│   │   └── services/     # Twilio, payment services
 │   └── requirements.txt
-└── frontend/             # Duplicate of root frontend files (reference only)
+├── .github/workflows/    # GitHub Actions
+│   └── android-build.yml # Android APK build (Gradle 7.6.3 + AGP 7.3.1)
+└── metro.config.js       # Metro bundler config (excludes .local/skills)
 ```
 
 ## Running the App

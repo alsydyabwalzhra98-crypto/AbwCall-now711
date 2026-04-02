@@ -15,14 +15,28 @@ export const ContactItem: React.FC<ContactItemProps> = ({
   contact,
   onPress,
   onDelete,
-  showDeleteButton = true,
+  showDeleteButton = false,
 }) => {
-  return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress?.(contact)}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{contact.name.charAt(0).toUpperCase()}</Text>
-      </View>
+  const handlePress = () => {
+    if (onPress) {
+      onPress(contact);
+    }
+  };
 
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(contact.id);
+    }
+  };
+
+  return (
+    <TouchableOpacity style={styles.container} onPress={handlePress}>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>
+          {contact.name.charAt(0).toUpperCase()}
+        </Text>
+      </View>
+      
       <View style={styles.contactInfo}>
         <Text style={styles.name}>{contact.name}</Text>
         <Text style={styles.phone}>{contact.phone}</Text>
@@ -32,11 +46,9 @@ export const ContactItem: React.FC<ContactItemProps> = ({
         <TouchableOpacity style={styles.callButton}>
           <Ionicons name="call" size={20} color={COLORS.primary} />
         </TouchableOpacity>
+        
         {showDeleteButton && (
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => onDelete?.(contact.id)}
-          >
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
             <Ionicons name="trash" size={20} color={COLORS.error} />
           </TouchableOpacity>
         )}

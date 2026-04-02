@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, calls, contacts, transactions, payments
+from app.api.v1.endpoints import auth, calls, contacts, transactions
 
 api_router = APIRouter()
 
@@ -8,4 +8,3 @@ api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(calls.router, prefix="/calls", tags=["calls"])
 api_router.include_router(contacts.router, prefix="/contacts", tags=["contacts"])
 api_router.include_router(transactions.router, prefix="/transactions", tags=["transactions"])
-api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
