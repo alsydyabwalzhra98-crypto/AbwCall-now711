@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../contexts/AuthContext';
 import { CallProvider } from '../contexts/CallContext';
 import { useEffect } from 'react';
-import { SplashScreen } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,7 +18,7 @@ export default function RootLayout() {
       <AuthProvider>
         <CallProvider>
           <Stack>
-            <Stack.Screen name="splash" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="call/[id]" options={{ headerShown: false }} />
@@ -30,3 +30,4 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
